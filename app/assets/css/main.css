@@ -2,7 +2,19 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-sans: 'Bebas Neue', sans-serif;
+
+  --color-brand-50: #FFF7ED;
+  --color-brand-100: #FFEDD5;
+  --color-brand-200: #FED7AA;
+  --color-brand-300: #FDBA74;
+  --color-brand-400: #FB923C;
+  --color-brand-500: #F97316;
+  --color-brand-600: #EA580C;
+  --color-brand-700: #C2410C;
+  --color-brand-800: #9A3412;
+  --color-brand-900: #7C2D12;
+  --color-brand-950: #431407;
 
   --color-green-50: #EFFDF5;
   --color-green-100: #D9FBE8;
