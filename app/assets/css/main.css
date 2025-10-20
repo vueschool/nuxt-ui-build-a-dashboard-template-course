@@ -28,3 +28,8 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
 }
+
+/* :root{
+  --ui-tertiary: var(--color-pink-200);
+  --ui-primary: var(--color-brand-950);
+} */
