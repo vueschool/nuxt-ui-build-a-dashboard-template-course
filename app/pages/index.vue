@@ -49,6 +49,7 @@ const period = ref<Period>('daily')
               icon="i-lucide-plus"
               size="md"
               class="rounded-full"
+              color="tertiary"
             />
           </UDropdownMenu>
         </template>
