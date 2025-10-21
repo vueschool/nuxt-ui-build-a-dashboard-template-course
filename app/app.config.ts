@@ -3,7 +3,14 @@ export default defineAppConfig({
     button: {
       defaultVariants: {
         size: 'xl'
-      }
+      },
+      compoundVariants: [
+        {
+          color: 'success',
+          variant: 'soft',
+          class: 'outline outline-success'
+        }
+      ]
     },
     card: {
       slots: {
