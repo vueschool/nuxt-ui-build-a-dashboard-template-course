@@ -6,17 +6,29 @@ defineProps<{
   members: Member[]
 }>()
 
-const items = [{
+const activeMember = ref<Member | undefined>()
+
+const items = (member: Member) => [{
   label: 'Edit member',
-  onSelect: () => console.log('Edit member')
+  onSelect: () => {
+    activeMember.value = member
+    open.value = true
+  }
 }, {
   label: 'Remove member',
   color: 'error' as const,
   onSelect: () => console.log('Remove member')
 }] satisfies DropdownMenuItem[]
+
+const open = ref(false)
 </script>
 
 <template>
+  <USlideover v-model:open="open">
+    <template #content>
+      {{ activeMember }}
+    </template>
+  </USlideover>
   <ul role="list" class="divide-y divide-default">
     <li
       v-for="(member, index) in members"
@@ -47,7 +59,7 @@ const items = [{
           :ui="{ value: 'capitalize', item: 'capitalize' }"
         />
 
-        <UDropdownMenu :items="items" :content="{ align: 'end' }">
+        <UDropdownMenu :items="items(member)" :content="{ align: 'end' }">
           <UButton
             icon="i-lucide-ellipsis-vertical"
             color="neutral"
