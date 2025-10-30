@@ -40,7 +40,7 @@ const open = computed({
 </script>
 
 <template>
-  <USlideover v-model:open="open">
+  <USlideover v-model:open="open" title="Edit member" :description="`Editing ${activeMember?.name}`">
     <template #content>
       {{ activeMember }}
     </template>
