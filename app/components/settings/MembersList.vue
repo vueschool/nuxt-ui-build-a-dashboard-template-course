@@ -2,17 +2,25 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { Member } from '~/types'
 
-defineProps<{
+const props = defineProps<{
   members: Member[]
 }>()
+const route = useRoute()
 
-const activeMember = ref<Member | undefined>()
+const activeMemberUsername = computed<string | undefined>(() => {
+  const action = route.params.path?.[0]?.toString()
+  return action === 'edit' ? route.params.path?.[1]?.toString() : undefined
+})
+
+const activeMember = ref<Member | undefined>(
+  props.members.find(member => member.username === activeMemberUsername.value)
+)
 
 const items = (member: Member) => [{
   label: 'Edit member',
   onSelect: () => {
-    activeMember.value = member
-    open.value = true
+    navigateTo(`/settings/members/edit/${member.username}`)
+    setTimeout(() => activeMember.value = member, 1)
   }
 }, {
   label: 'Remove member',
@@ -20,7 +28,15 @@ const items = (member: Member) => [{
   onSelect: () => console.log('Remove member')
 }] satisfies DropdownMenuItem[]
 
-const open = ref(false)
+const open = computed({
+  get: () => !!activeMember.value,
+  set: (value) => {
+    if (!value) {
+      activeMember.value = undefined
+      setTimeout(() => navigateTo('/settings/members'), 1)
+    }
+  }
+})
 </script>
 
 <template>
