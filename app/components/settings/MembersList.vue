@@ -42,7 +42,7 @@ const open = computed({
 <template>
   <USlideover v-model:open="open" title="Edit member" :description="`Editing ${activeMember?.name}`">
     <template #content>
-      {{ activeMember }}
+      <SettingsMemberEditForm :member="activeMember" />
     </template>
   </USlideover>
   <ul role="list" class="divide-y divide-default">

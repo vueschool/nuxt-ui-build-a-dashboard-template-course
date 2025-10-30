@@ -2,7 +2,6 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Bebas Neue', sans-serif;
 
   --color-brand-50: #FFF7ED;
   --color-brand-100: #FFEDD5;
