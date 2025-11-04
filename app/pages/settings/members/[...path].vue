@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Member } from '~/types'
 
-const { data: members } = await useFetch<Member[]>('/api/members', { default: () => [] })
+const { data: members, refresh } = await useFetch<Member[]>('/api/members', { default: () => [] })
 
 const q = ref('')
 
@@ -10,6 +10,15 @@ const filteredMembers = computed(() => {
     return member.name.search(new RegExp(q.value, 'i')) !== -1 || member.username.search(new RegExp(q.value, 'i')) !== -1
   })
 })
+
+function handleInvite() {
+  console.log('Invite member')
+}
+
+function handleRefresh() {
+  q.value = ''
+  refresh()
+}
 </script>
 
 <template>
@@ -25,6 +34,7 @@ const filteredMembers = computed(() => {
         label="Invite people"
         color="neutral"
         class="w-fit lg:ms-auto"
+        @click="handleInvite"
       />
     </UPageCard>
 
@@ -39,7 +49,7 @@ const filteredMembers = computed(() => {
         />
       </template>
 
-      <SettingsMembersList :members="filteredMembers" />
+      <SettingsMembersList :members="filteredMembers" @invite="handleInvite" @refresh="handleRefresh" />
     </UPageCard>
   </div>
 </template>

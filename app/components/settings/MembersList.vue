@@ -5,6 +5,12 @@ import type { Member } from '~/types'
 const props = defineProps<{
   members: Member[]
 }>()
+
+defineEmits<{
+  (e: 'invite'): void
+  (e: 'refresh'): void
+}>()
+
 const route = useRoute()
 
 const activeMemberUsername = computed<string | undefined>(() => {
@@ -45,7 +51,7 @@ const open = computed({
       <SettingsMemberEditForm :member="activeMember" />
     </template>
   </USlideover>
-  <ul role="list" class="divide-y divide-default">
+  <ul v-if="members.length > 0" role="list" class="divide-y divide-default">
     <li
       v-for="(member, index) in members"
       :key="index"
@@ -85,4 +91,24 @@ const open = computed({
       </div>
     </li>
   </ul>
+  <UEmpty
+    v-else
+    icon="i-lucide-users"
+    title="No members found"
+    description="It looks like you haven't added any members. Invite a member to get started."
+    :actions="[
+      {
+        icon: 'i-lucide-plus',
+        label: 'Invite member',
+        onClick: () => $emit('invite')
+      },
+      {
+        icon: 'i-lucide-refresh-cw',
+        label: 'Refresh',
+        color: 'neutral',
+        variant: 'subtle',
+        onClick: () => $emit('refresh')
+      }
+    ]"
+  />
 </template>
