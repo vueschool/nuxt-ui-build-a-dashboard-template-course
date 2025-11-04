@@ -15,7 +15,7 @@ const schema = z.object({
   username: z.string().min(1, 'Username is required'),
   role: z.enum(roles),
   avatar: z.object({
-    src: z.url('Invalid URL').optional()
+    src: z.string('Avatar is required')
   })
 })
 
@@ -50,6 +50,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     class="space-y-4 p-8"
     @submit="onSubmit"
   >
+    <UFormField name="avatar.src" class="flex justify-center" eager-validation>
+      <AppAvatarField v-if="state.avatar" v-model="state.avatar.src" />
+    </UFormField>
     <UFormField label="Name" name="name">
       <UInput v-model="state.name" class="w-full" />
     </UFormField>
@@ -66,10 +69,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         color="neutral"
         :ui="{ item: 'capitalize' }"
       />
-    </UFormField>
-
-    <UFormField label="Avatar URL" name="avatar.src">
-      <UInput v-model="state.avatar!.src" class="w-full" placeholder="https://..." />
     </UFormField>
 
     <UButton type="submit">
