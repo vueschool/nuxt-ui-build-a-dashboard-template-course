@@ -195,6 +195,15 @@ const pagination = ref({
   pageIndex: 0,
   pageSize: 10
 })
+
+const isEmpty = computed(() => {
+  if (status.value === 'pending') return false
+  if (!data.value || data.value.length === 0) return true
+  if (!table?.value?.tableApi) return false
+  return table.value.tableApi.getFilteredRowModel().rows.length === 0
+})
+
+const addModalOpen = ref(false)
 </script>
 
 <template>
@@ -206,115 +215,140 @@ const pagination = ref({
         </template>
 
         <template #right>
-          <CustomersAddModal />
+          <CustomersAddModal v-model="addModalOpen" />
         </template>
       </UDashboardNavbar>
     </template>
 
     <template #body>
-      <div class="flex flex-wrap items-center justify-between gap-1.5">
-        <UInput
-          :model-value="(table?.tableApi?.getColumn('email')?.getFilterValue() as string)"
-          class="max-w-sm"
-          icon="i-lucide-search"
-          placeholder="Filter emails..."
-          @update:model-value="table?.tableApi?.getColumn('email')?.setFilterValue($event)"
+      <div class="flex flex-col flex-1 min-h-0">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 shrink-0">
+          <UInput
+            :model-value="(table?.tableApi?.getColumn('email')?.getFilterValue() as string)"
+            class="max-w-sm"
+            icon="i-lucide-search"
+            placeholder="Filter emails..."
+            @update:model-value="table?.tableApi?.getColumn('email')?.setFilterValue($event)"
+          />
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
+              <UButton
+                v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
+                label="Delete"
+                color="error"
+                variant="subtle"
+                icon="i-lucide-trash"
+              >
+                <template #trailing>
+                  <UKbd>
+                    {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
+                  </UKbd>
+                </template>
+              </UButton>
+            </CustomersDeleteModal>
+
+            <USelect
+              v-model="statusFilter"
+              :items="[
+                { label: 'All', value: 'all' },
+                { label: 'Subscribed', value: 'subscribed' },
+                { label: 'Unsubscribed', value: 'unsubscribed' },
+                { label: 'Bounced', value: 'bounced' }
+              ]"
+              :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
+              placeholder="Filter status"
+              class="min-w-28"
+            />
+            <UDropdownMenu
+              :items="
+                table?.tableApi
+                  ?.getAllColumns()
+                  .filter((column: any) => column.getCanHide())
+                  .map((column: any) => ({
+                    label: upperFirst(column.id),
+                    type: 'checkbox' as const,
+                    checked: column.getIsVisible(),
+                    onUpdateChecked(checked: boolean) {
+                      table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
+                    },
+                    onSelect(e?: Event) {
+                      e?.preventDefault()
+                    }
+                  }))
+              "
+              :content="{ align: 'end' }"
+            >
+              <UButton
+                label="Display"
+                color="neutral"
+                variant="outline"
+                trailing-icon="i-lucide-settings-2"
+              />
+            </UDropdownMenu>
+          </div>
+        </div>
+
+        <UTable
+          v-if="!isEmpty"
+          ref="table"
+          v-model:column-filters="columnFilters"
+          v-model:column-visibility="columnVisibility"
+          v-model:row-selection="rowSelection"
+          v-model:pagination="pagination"
+          :pagination-options="{
+            getPaginationRowModel: getPaginationRowModel()
+          }"
+          class="shrink-0"
+          :data="data"
+          :columns="columns"
+          :loading="status === 'pending'"
+          :ui="{
+            base: 'table-fixed border-separate border-spacing-0',
+            thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+            tbody: '[&>tr]:last:[&>td]:border-b-0',
+            th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+            td: 'border-b border-default'
+          }"
         />
 
-        <div class="flex flex-wrap items-center gap-1.5">
-          <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
-            <UButton
-              v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-              label="Delete"
-              color="error"
-              variant="subtle"
-              icon="i-lucide-trash"
-            >
-              <template #trailing>
-                <UKbd>
-                  {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
-                </UKbd>
-              </template>
-            </UButton>
-          </CustomersDeleteModal>
+        <div
+          v-if="!isEmpty"
+          class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto shrink-0"
+        >
+          <div class="text-sm text-muted">
+            {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
+            {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
+          </div>
 
-          <USelect
-            v-model="statusFilter"
-            :items="[
-              { label: 'All', value: 'all' },
-              { label: 'Subscribed', value: 'subscribed' },
-              { label: 'Unsubscribed', value: 'unsubscribed' },
-              { label: 'Bounced', value: 'bounced' }
-            ]"
-            :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
-            placeholder="Filter status"
-            class="min-w-28"
-          />
-          <UDropdownMenu
-            :items="
-              table?.tableApi
-                ?.getAllColumns()
-                .filter((column: any) => column.getCanHide())
-                .map((column: any) => ({
-                  label: upperFirst(column.id),
-                  type: 'checkbox' as const,
-                  checked: column.getIsVisible(),
-                  onUpdateChecked(checked: boolean) {
-                    table?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked)
-                  },
-                  onSelect(e?: Event) {
-                    e?.preventDefault()
-                  }
-                }))
-            "
-            :content="{ align: 'end' }"
-          >
-            <UButton
-              label="Display"
-              color="neutral"
-              variant="outline"
-              trailing-icon="i-lucide-settings-2"
+          <div class="flex items-center gap-1.5">
+            <UPagination
+              :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+              :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+              :total="table?.tableApi?.getFilteredRowModel().rows.length"
+              @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
             />
-          </UDropdownMenu>
-        </div>
-      </div>
-
-      <UTable
-        ref="table"
-        v-model:column-filters="columnFilters"
-        v-model:column-visibility="columnVisibility"
-        v-model:row-selection="rowSelection"
-        v-model:pagination="pagination"
-        :pagination-options="{
-          getPaginationRowModel: getPaginationRowModel()
-        }"
-        class="shrink-0"
-        :data="data"
-        :columns="columns"
-        :loading="status === 'pending'"
-        :ui="{
-          base: 'table-fixed border-separate border-spacing-0',
-          thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-          tbody: '[&>tr]:last:[&>td]:border-b-0',
-          th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-          td: 'border-b border-default'
-        }"
-      />
-
-      <div class="flex items-center justify-between gap-3 border-t border-default pt-4 mt-auto">
-        <div class="text-sm text-muted">
-          {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-          {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
+          </div>
         </div>
 
-        <div class="flex items-center gap-1.5">
-          <UPagination
-            :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-            :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-            :total="table?.tableApi?.getFilteredRowModel().rows.length"
-            @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
-          />
-        </div>
+        <UEmpty
+          v-if="isEmpty"
+          icon="i-lucide-users"
+          title="No customers found"
+          :description="data && data.length > 0
+            ? 'No customers match your current filters. Try adjusting your search criteria.'
+            : 'Get started by adding your first customer to the database.'"
+          :actions="[
+            {
+              label: 'Add customer',
+              icon: 'i-lucide-plus',
+              onClick: () => addModalOpen = true
+            }
+          ]"
+          variant="naked"
+          size="lg"
+          class="flex-1 flex items-center justify-center py-12"
+        />
       </div>
     </template>
   </UDashboardPanel>

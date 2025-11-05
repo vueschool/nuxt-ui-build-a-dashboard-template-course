@@ -6,7 +6,19 @@ const schema = z.object({
   name: z.string().min(2, 'Too short'),
   email: z.string().email('Invalid email')
 })
-const open = ref(false)
+
+const props = defineProps<{
+  modelValue?: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
+
+const open = computed({
+  get: () => props.modelValue ?? false,
+  set: (value) => emit('update:modelValue', value)
+})
 
 type Schema = z.output<typeof schema>
 
