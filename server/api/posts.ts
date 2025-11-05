@@ -204,9 +204,32 @@ const posts: Post[] = [{
 }]
 
 export default defineEventHandler(async (event) => {
-  const { q } = getQuery(event) as { q: string }
-  if (q) {
-    return posts.filter(post => post.title.toLowerCase().includes(q.toLowerCase()))
+  const { q, sort } = getQuery(event) as { q?: string, sort?: string }
+
+  let postsCopy = [...posts]
+
+  if (sort) {
+    postsCopy = sortPosts(postsCopy, sort)
   }
-  return posts
+
+  if (q) {
+    postsCopy = postsCopy.filter(post => post.title.toLowerCase().includes(q.toLowerCase()))
+  }
+
+  return postsCopy
 })
+
+// sort based on a field name or -name (desc)
+function sortPosts(posts: Post[], sort: string) {
+  const postsCopy = [...posts]
+  const sortKey = sort.startsWith('-') ? sort.slice(1) : sort
+  const isDescending = sort.startsWith('-')
+  const key = sortKey as keyof Post
+  postsCopy.sort((a, b) => {
+    const aVal = a[key] as string
+    const bVal = b[key] as string
+    const comparison = aVal.localeCompare(bVal)
+    return isDescending ? -comparison : comparison
+  })
+  return postsCopy
+}

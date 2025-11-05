@@ -16,6 +16,10 @@ const table = useTemplateRef('table')
 const query = ref('')
 const queryDebounced = refDebounced(query, 500)
 
+// Sort can be any post field or a field with a '-' prepended to make it descending
+type SortKey = keyof Post | `-${keyof Post}`
+const sort = ref<SortKey | undefined>()
+
 const columnFilters = ref([{
   id: 'title',
   value: ''
@@ -26,7 +30,8 @@ const rowSelection = ref({})
 const { data, status } = await useFetch<Post[]>('/api/posts', {
   lazy: true,
   query: {
-    q: queryDebounced
+    q: queryDebounced,
+    sort
   }
 })
 
@@ -101,19 +106,20 @@ const columns: TableColumn<Post>[] = [
   {
     accessorKey: 'title',
     header: ({ column }) => {
-      const isSorted = column.getIsSorted()
+      const isSorted = sort.value?.includes('title')
+      const isSortedAscending = !sort.value?.startsWith('-')
 
       return h(UButton, {
         color: 'neutral',
         variant: 'ghost',
         label: 'Title',
         icon: isSorted
-          ? isSorted === 'asc'
+          ? isSortedAscending
             ? 'i-lucide-arrow-up-narrow-wide'
             : 'i-lucide-arrow-down-wide-narrow'
           : 'i-lucide-arrow-up-down',
         class: '-mx-2.5',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        onClick: () => sort.value = isSortedAscending ? `-title` : 'title'
       })
     },
     cell: ({ row }) => {
