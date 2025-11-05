@@ -203,7 +203,10 @@ const posts: Post[] = [{
   likes: 445
 }]
 
-export default eventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  const { q } = getQuery(event) as { q: string }
+  if (q) {
+    return posts.filter(post => post.title.toLowerCase().includes(q.toLowerCase()))
+  }
   return posts
 })
-

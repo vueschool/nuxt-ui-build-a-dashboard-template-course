@@ -13,6 +13,9 @@ const UCheckbox = resolveComponent('UCheckbox')
 const toast = useToast()
 const table = useTemplateRef('table')
 
+const query = ref('')
+const queryDebounced = refDebounced(query, 500)
+
 const columnFilters = ref([{
   id: 'title',
   value: ''
@@ -21,7 +24,10 @@ const columnVisibility = ref()
 const rowSelection = ref({})
 
 const { data, status } = await useFetch<Post[]>('/api/posts', {
-  lazy: true
+  lazy: true,
+  query: {
+    q: queryDebounced
+  }
 })
 
 function getRowItems(row: Row<Post>) {
@@ -237,11 +243,10 @@ const isEmpty = computed((): boolean => {
       <div class="flex flex-col flex-1 min-h-0">
         <div class="flex flex-wrap items-center justify-between gap-1.5 shrink-0">
           <UInput
-            :model-value="(table?.tableApi?.getColumn('title')?.getFilterValue() as string)"
+            v-model="query"
             class="max-w-sm"
             icon="i-lucide-search"
             placeholder="Filter posts..."
-            @update:model-value="table?.tableApi?.getColumn('title')?.setFilterValue($event)"
           />
 
           <div class="flex flex-wrap items-center gap-1.5">
@@ -342,4 +347,3 @@ const isEmpty = computed((): boolean => {
     </template>
   </UDashboardPanel>
 </template>
-
