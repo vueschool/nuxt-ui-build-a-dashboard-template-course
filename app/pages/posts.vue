@@ -3,9 +3,8 @@ import type { TableColumn } from '@nuxt/ui'
 import { upperFirst } from 'scule'
 import { getPaginationRowModel } from '@tanstack/table-core'
 import type { Row } from '@tanstack/table-core'
-import type { User } from '~/types'
+import type { Post } from '~/types'
 
-const UAvatar = resolveComponent('UAvatar')
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
@@ -15,30 +14,30 @@ const toast = useToast()
 const table = useTemplateRef('table')
 
 const columnFilters = ref([{
-  id: 'email',
+  id: 'title',
   value: ''
 }])
 const columnVisibility = ref()
-const rowSelection = ref({ 1: true })
+const rowSelection = ref({})
 
-const { data, status } = await useFetch<User[]>('/api/customers', {
+const { data, status } = await useFetch<Post[]>('/api/posts', {
   lazy: true
 })
 
-function getRowItems(row: Row<User>) {
+function getRowItems(row: Row<Post>) {
   return [
     {
       type: 'label',
       label: 'Actions'
     },
     {
-      label: 'Copy customer ID',
+      label: 'Copy post ID',
       icon: 'i-lucide-copy',
       onSelect() {
         navigator.clipboard.writeText(row.original.id.toString())
         toast.add({
           title: 'Copied to clipboard',
-          description: 'Customer ID copied to clipboard'
+          description: 'Post ID copied to clipboard'
         })
       }
     },
@@ -46,31 +45,31 @@ function getRowItems(row: Row<User>) {
       type: 'separator'
     },
     {
-      label: 'View customer details',
-      icon: 'i-lucide-list'
+      label: 'View post details',
+      icon: 'i-lucide-eye'
     },
     {
-      label: 'View customer payments',
-      icon: 'i-lucide-wallet'
+      label: 'Edit post',
+      icon: 'i-lucide-edit'
     },
     {
       type: 'separator'
     },
     {
-      label: 'Delete customer',
+      label: 'Delete post',
       icon: 'i-lucide-trash',
       color: 'error',
       onSelect() {
         toast.add({
-          title: 'Customer deleted',
-          description: 'The customer has been deleted.'
+          title: 'Post deleted',
+          description: 'The post has been deleted.'
         })
       }
     }
   ]
 }
 
-const columns: TableColumn<User>[] = [
+const columns: TableColumn<Post>[] = [
   {
     id: 'select',
     header: ({ table }) =>
@@ -94,30 +93,14 @@ const columns: TableColumn<User>[] = [
     header: 'ID'
   },
   {
-    accessorKey: 'name',
-    header: 'Name',
-    cell: ({ row }) => {
-      return h('div', { class: 'flex items-center gap-3' }, [
-        h(UAvatar, {
-          ...row.original.avatar,
-          size: 'lg'
-        }),
-        h('div', undefined, [
-          h('p', { class: 'font-medium text-highlighted' }, row.original.name),
-          h('p', { class: '' }, `@${row.original.name}`)
-        ])
-      ])
-    }
-  },
-  {
-    accessorKey: 'email',
+    accessorKey: 'title',
     header: ({ column }) => {
       const isSorted = column.getIsSorted()
 
       return h(UButton, {
         color: 'neutral',
         variant: 'ghost',
-        label: 'Email',
+        label: 'Title',
         icon: isSorted
           ? isSorted === 'asc'
             ? 'i-lucide-arrow-up-narrow-wide'
@@ -126,12 +109,23 @@ const columns: TableColumn<User>[] = [
         class: '-mx-2.5',
         onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
       })
+    },
+    cell: ({ row }) => {
+      return h('div', undefined, [
+        h('p', { class: 'font-medium text-highlighted' }, row.original.title),
+        h('p', { class: 'text-sm text-muted line-clamp-1' }, row.original.excerpt)
+      ])
     }
   },
   {
-    accessorKey: 'location',
-    header: 'Location',
-    cell: ({ row }) => row.original.location
+    accessorKey: 'author',
+    header: 'Author',
+    cell: ({ row }) => row.original.author
+  },
+  {
+    accessorKey: 'category',
+    header: 'Category',
+    cell: ({ row }) => row.original.category
   },
   {
     accessorKey: 'status',
@@ -139,14 +133,39 @@ const columns: TableColumn<User>[] = [
     filterFn: 'equals',
     cell: ({ row }) => {
       const color = {
-        subscribed: 'success' as const,
-        unsubscribed: 'error' as const,
-        bounced: 'warning' as const
+        published: 'success' as const,
+        draft: 'warning' as const,
+        archived: 'neutral' as const
       }[row.original.status]
 
       return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
         row.original.status
       )
+    }
+  },
+  {
+    accessorKey: 'publishedAt',
+    header: 'Published',
+    cell: ({ row }) => {
+      return new Date(row.original.publishedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+  },
+  {
+    accessorKey: 'views',
+    header: () => h('div', { class: 'text-right' }, 'Views'),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-right' }, row.original.views.toLocaleString())
+    }
+  },
+  {
+    accessorKey: 'likes',
+    header: () => h('div', { class: 'text-right' }, 'Likes'),
+    cell: ({ row }) => {
+      return h('div', { class: 'text-right' }, row.original.likes.toLocaleString())
     }
   },
   {
@@ -202,20 +221,14 @@ const isEmpty = computed((): boolean => {
   if (!table?.value?.tableApi) return false
   return table.value.tableApi.getFilteredRowModel().rows.length === 0
 })
-
-const addModalOpen = ref(false)
 </script>
 
 <template>
-  <UDashboardPanel id="customers">
+  <UDashboardPanel id="posts">
     <template #header>
-      <UDashboardNavbar title="Customers">
+      <UDashboardNavbar title="Posts">
         <template #leading>
           <UDashboardSidebarCollapse />
-        </template>
-
-        <template #right>
-          <CustomersAddModal v-model="addModalOpen" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -224,37 +237,21 @@ const addModalOpen = ref(false)
       <div class="flex flex-col flex-1 min-h-0">
         <div class="flex flex-wrap items-center justify-between gap-1.5 shrink-0">
           <UInput
-            :model-value="(table?.tableApi?.getColumn('email')?.getFilterValue() as string)"
+            :model-value="(table?.tableApi?.getColumn('title')?.getFilterValue() as string)"
             class="max-w-sm"
             icon="i-lucide-search"
-            placeholder="Filter emails..."
-            @update:model-value="table?.tableApi?.getColumn('email')?.setFilterValue($event)"
+            placeholder="Filter posts..."
+            @update:model-value="table?.tableApi?.getColumn('title')?.setFilterValue($event)"
           />
 
           <div class="flex flex-wrap items-center gap-1.5">
-            <CustomersDeleteModal :count="table?.tableApi?.getFilteredSelectedRowModel().rows.length">
-              <UButton
-                v-if="table?.tableApi?.getFilteredSelectedRowModel().rows.length"
-                label="Delete"
-                color="error"
-                variant="subtle"
-                icon="i-lucide-trash"
-              >
-                <template #trailing>
-                  <UKbd>
-                    {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length }}
-                  </UKbd>
-                </template>
-              </UButton>
-            </CustomersDeleteModal>
-
             <USelect
               v-model="statusFilter"
               :items="[
                 { label: 'All', value: 'all' },
-                { label: 'Subscribed', value: 'subscribed' },
-                { label: 'Unsubscribed', value: 'unsubscribed' },
-                { label: 'Bounced', value: 'bounced' }
+                { label: 'Published', value: 'published' },
+                { label: 'Draft', value: 'draft' },
+                { label: 'Archived', value: 'archived' }
               ]"
               :ui="{ trailingIcon: 'group-data-[state=open]:rotate-180 transition-transform duration-200' }"
               placeholder="Filter status"
@@ -312,20 +309,11 @@ const addModalOpen = ref(false)
         >
           <template #empty>
             <UEmpty
-              icon="i-lucide-users"
-              title="No customers found"
+              icon="i-lucide-file-text"
+              title="No posts found"
               :description="data && data.length > 0
-                ? 'No customers match your current filters. Try adjusting your search criteria.'
-                : 'Get started by adding your first customer to the database.'"
-              :actions="[
-                {
-                  label: 'Add customer',
-                  icon: 'i-lucide-plus',
-                  onClick: () => {
-                    addModalOpen = true
-                  }
-                }
-              ]"
+                ? 'No posts match your current filters. Try adjusting your search criteria.'
+                : 'Get started by creating your first post.'"
               variant="naked"
               size="lg"
               class="flex-1 flex items-center justify-center py-12"
@@ -354,3 +342,4 @@ const addModalOpen = ref(false)
     </template>
   </UDashboardPanel>
 </template>
+

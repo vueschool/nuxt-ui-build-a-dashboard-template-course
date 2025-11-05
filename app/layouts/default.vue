@@ -34,6 +34,14 @@ const links = [
       }
     },
     {
+      label: 'Posts',
+      icon: 'i-lucide-file-text',
+      to: '/posts',
+      onSelect: () => {
+        open.value = false
+      }
+    },
+    {
       label: 'Settings',
       to: '/settings',
       icon: 'i-lucide-settings',

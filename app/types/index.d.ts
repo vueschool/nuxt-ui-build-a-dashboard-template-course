@@ -58,3 +58,17 @@ export interface Range {
   start: Date
   end: Date
 }
+
+export type PostStatus = 'draft' | 'published' | 'archived'
+
+export interface Post {
+  id: number
+  title: string
+  excerpt: string
+  author: string
+  category: string
+  status: PostStatus
+  publishedAt: string
+  views: number
+  likes: number
+}
