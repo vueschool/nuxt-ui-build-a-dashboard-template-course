@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { upperFirst } from 'scule'
-import { getPaginationRowModel } from '@tanstack/table-core'
 import type { Row } from '@tanstack/table-core'
 import type { Post } from '~/types'
 
@@ -20,6 +19,10 @@ const queryDebounced = refDebounced(query, 500)
 type SortKey = keyof Post | `-${keyof Post}`
 const sort = ref<SortKey | undefined>()
 
+const paginationPageIndex = ref(0)
+const paginationPageSize = ref(10)
+const paginationTotal = ref(0)
+
 const columnFilters = ref([{
   id: 'title',
   value: ''
@@ -27,13 +30,24 @@ const columnFilters = ref([{
 const columnVisibility = ref()
 const rowSelection = ref({})
 
-const { data, status } = await useFetch<Post[]>('/api/posts', {
+const { data: response, status } = await useFetch('/api/posts', {
   lazy: true,
   query: {
     q: queryDebounced,
-    sort
+    sort,
+    pageIndex: paginationPageIndex,
+    pageSize: paginationPageSize
   }
 })
+
+const data = computed(() => response.value?.data)
+
+watch(response, (newVal) => {
+  if (newVal) {
+    paginationTotal.value = newVal.total
+    paginationPageIndex.value = newVal.pageIndex
+  }
+}, { immediate: true })
 
 function getRowItems(row: Row<Post>) {
   return [
@@ -222,11 +236,6 @@ watch(() => statusFilter.value, (newVal) => {
   }
 })
 
-const pagination = ref({
-  pageIndex: 0,
-  pageSize: 10
-})
-
 const isEmpty = computed((): boolean => {
   if (status.value === 'pending') return false
   if (!data.value || data.value.length === 0) return true
@@ -302,10 +311,6 @@ const isEmpty = computed((): boolean => {
           v-model:column-filters="columnFilters"
           v-model:column-visibility="columnVisibility"
           v-model:row-selection="rowSelection"
-          v-model:pagination="pagination"
-          :pagination-options="{
-            getPaginationRowModel: getPaginationRowModel()
-          }"
           class="shrink-0 mt-5"
           :data="data"
           :columns="columns"
@@ -342,10 +347,10 @@ const isEmpty = computed((): boolean => {
 
           <div class="flex items-center gap-1.5">
             <UPagination
-              :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-              :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-              :total="table?.tableApi?.getFilteredRowModel().rows.length"
-              @update:page="(p: number) => table?.tableApi?.setPageIndex(p - 1)"
+              :page="paginationPageIndex + 1"
+              :items-per-page="paginationPageSize"
+              :total="paginationTotal"
+              @update:page="paginationPageIndex = $event - 1"
             />
           </div>
         </div>

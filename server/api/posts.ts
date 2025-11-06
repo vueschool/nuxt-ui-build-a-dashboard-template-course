@@ -201,10 +201,11 @@ const posts: Post[] = [{
   publishedAt: sub(new Date(), { days: 45 }).toISOString(),
   views: 5234,
   likes: 445
-}]
+}
+]
 
 export default defineEventHandler(async (event) => {
-  const { q, sort } = getQuery(event) as { q?: string, sort?: string }
+  const { q, sort, pageIndex, pageSize } = getQuery(event) as { q?: string, sort?: string, pageIndex?: string, pageSize?: string }
 
   let postsCopy = [...posts]
 
@@ -216,8 +217,27 @@ export default defineEventHandler(async (event) => {
     postsCopy = postsCopy.filter(post => post.title.toLowerCase().includes(q.toLowerCase()))
   }
 
-  return postsCopy
+  const paginated = handlePagination(pageIndex, pageSize, postsCopy)
+
+  return {
+    data: paginated.data,
+    total: paginated.total,
+    pageIndex: paginated.pageIndex
+  }
 })
+
+function handlePagination(pageIndex: string | undefined, pageSize: string | undefined, data: Post[]) {
+  const pageIndexNumber = parseInt(pageIndex ?? '0')
+  const pageSizeNumber = pageSize ? parseInt(pageSize) : 10
+  const total = data.length
+  const maxPageIndex = total > 0 ? Math.ceil(total / pageSizeNumber) - 1 : 0
+  const clampedPageIndex = Math.max(0, Math.min(pageIndexNumber, maxPageIndex))
+  return {
+    data: data.slice(clampedPageIndex * pageSizeNumber, (clampedPageIndex + 1) * pageSizeNumber),
+    total,
+    pageIndex: clampedPageIndex
+  }
+}
 
 // sort based on a field name or -name (desc)
 function sortPosts(posts: Post[], sort: string) {
