@@ -201,7 +201,229 @@ const posts: Post[] = [{
   publishedAt: sub(new Date(), { days: 45 }).toISOString(),
   views: 5234,
   likes: 445
+},
+{
+  id: 21,
+  title: 'Understanding Nuxt Plugins',
+  excerpt: 'A practical look into creating and using plugins in Nuxt.',
+  author: 'Jamie Lee',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 48 }).toISOString(),
+  views: 2456,
+  likes: 198
+}, {
+  id: 22,
+  title: 'Scaling Nuxt Applications',
+  excerpt: 'Tips and architectures for scaling up with confidence.',
+  author: 'Ryan Patterson',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 49 }).toISOString(),
+  views: 3221,
+  likes: 210
+}, {
+  id: 23,
+  title: 'Accessibility in Nuxt',
+  excerpt: 'Ensuring your application is usable by everyone.',
+  author: 'Cameron Foster',
+  category: 'Design',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 50 }).toISOString(),
+  views: 1580,
+  likes: 127
+}, {
+  id: 24,
+  title: 'Unit Testing Nuxt Apps',
+  excerpt: 'Best practices for testing your codebase.',
+  author: 'Robin Nguyen',
+  category: 'Development',
+  status: 'draft',
+  publishedAt: sub(new Date(), { days: 2 }).toISOString(),
+  views: 0,
+  likes: 0
+}, {
+  id: 25,
+  title: 'State Management with Pinia',
+  excerpt: 'Integrating and using Pinia for global state.',
+  author: 'Avery Carter',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 51 }).toISOString(),
+  views: 3122,
+  likes: 276
+}, {
+  id: 26,
+  title: 'Nuxt Content Module Deep Dive',
+  excerpt: 'Leveraging content for static and dynamic sites.',
+  author: 'Harper Sullivan',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 55 }).toISOString(),
+  views: 2170,
+  likes: 158
+}, {
+  id: 27,
+  title: 'Building Custom Directives',
+  excerpt: 'Extend your templates with reusable functionality.',
+  author: 'Casey Brooks',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 60 }).toISOString(),
+  views: 1722,
+  likes: 98
+}, {
+  id: 28,
+  title: 'Boosting Performance in Nuxt',
+  excerpt: 'How to make your Nuxt app blazing fast.',
+  author: 'Sidney Kelly',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 61 }).toISOString(),
+  views: 3871,
+  likes: 377
+}, {
+  id: 29,
+  title: 'Integrating GraphQL',
+  excerpt: 'Fetching and mutating data using GraphQL in Nuxt.',
+  author: 'Alexis Kim',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 62 }).toISOString(),
+  views: 1841,
+  likes: 115
+}, {
+  id: 30,
+  title: 'SSR vs SSG: What to Choose?',
+  excerpt: 'Pros and cons of Server-Side Rendering and Static Generation.',
+  author: 'Drew Patel',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 63 }).toISOString(),
+  views: 2024,
+  likes: 191
+}, {
+  id: 31,
+  title: 'Nuxt Animations with Framer Motion',
+  excerpt: 'Beautiful animations with the Framer Motion library.',
+  author: 'Sam Emerson',
+  category: 'Design',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 65 }).toISOString(),
+  views: 1462,
+  likes: 84
+}, {
+  id: 32,
+  title: 'Localization in Nuxt Applications',
+  excerpt: 'Make your app multilingual using i18n modules.',
+  author: 'River Bailey',
+  category: 'Tutorial',
+  status: 'archived',
+  publishedAt: sub(new Date(), { days: 70 }).toISOString(),
+  views: 1744,
+  likes: 99
+}, {
+  id: 33,
+  title: 'Progressive Web Apps with Nuxt',
+  excerpt: 'Going offline and working everywhere.',
+  author: 'Brooklyn Flores',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 71 }).toISOString(),
+  views: 2890,
+  likes: 204
+}, {
+  id: 34,
+  title: 'Dynamic Routing in Nuxt 3',
+  excerpt: 'Strategies for advanced navigation.',
+  author: 'Skyler Hughes',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 72 }).toISOString(),
+  views: 1198,
+  likes: 73
+}, {
+  id: 35,
+  title: 'Using API Routes in Nuxt',
+  excerpt: 'Creating and consuming API routes.',
+  author: 'Dakota Lane',
+  category: 'Development',
+  status: 'draft',
+  publishedAt: sub(new Date(), { days: 3 }).toISOString(),
+  views: 0,
+  likes: 0
+}, {
+  id: 36,
+  title: 'Styling with Tailwind CSS',
+  excerpt: 'How to use Tailwind efficiently in Nuxt projects.',
+  author: 'Robin Tran',
+  category: 'Design',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 80 }).toISOString(),
+  views: 2600,
+  likes: 314
+}, {
+  id: 37,
+  title: 'Server Middleware Explained',
+  excerpt: 'Middleware and its use cases within Nuxt server routes.',
+  author: 'Shawn Bryant',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 85 }).toISOString(),
+  views: 1217,
+  likes: 67
+}, {
+  id: 38,
+  title: 'Environment Variables in Nuxt',
+  excerpt: 'Best practices for handling secrets and configs.',
+  author: 'Jessie Paige',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 95 }).toISOString(),
+  views: 1712,
+  likes: 73
+}, {
+  id: 39,
+  title: 'Composable Functions 101',
+  excerpt: 'Building and reusing composables across projects.',
+  author: 'Quinn Morris',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 98 }).toISOString(),
+  views: 2866,
+  likes: 334
+}, {
+  id: 40,
+  title: 'Real-Time Features with WebSockets',
+  excerpt: 'Implementing real-time chat in Nuxt.',
+  author: 'Aiden Myers',
+  category: 'Development',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 105 }).toISOString(),
+  views: 997,
+  likes: 88
+}, {
+  id: 41,
+  title: 'Nuxt and Headless CMS',
+  excerpt: 'Connecting Strapi, Contentful, and others to Nuxt.',
+  author: 'Morgan James',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 109 }).toISOString(),
+  views: 2112,
+  likes: 174
+}, {
+  id: 42,
+  title: 'Deploying to Vercel & Netlify',
+  excerpt: 'A quick deployment guide for the two popular platforms.',
+  author: 'Peyton Clark',
+  category: 'Tutorial',
+  status: 'published',
+  publishedAt: sub(new Date(), { days: 110 }).toISOString(),
+  views: 3031,
+  likes: 219
 }
+
 ]
 
 export default defineEventHandler(async (event) => {

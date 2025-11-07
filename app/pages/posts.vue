@@ -21,7 +21,7 @@ const sort = ref<SortKey | undefined>()
 
 const paginationPageIndex = ref(0)
 const paginationPageSize = ref(10)
-const paginationTotal = ref(0)
+const paginationTotal = ref()
 
 const columnFilters = ref([{
   id: 'title',
@@ -40,12 +40,13 @@ const { data: response, status } = await useFetch('/api/posts', {
   }
 })
 
-const data = computed(() => response.value?.data)
+const data = ref<Post[]>()
 
 watch(response, (newVal) => {
   if (newVal) {
     paginationTotal.value = newVal.total
     paginationPageIndex.value = newVal.pageIndex
+    data.value = [...(data.value || []), ...response.value?.data || []]
   }
 }, { immediate: true })
 
@@ -242,6 +243,27 @@ const isEmpty = computed((): boolean => {
   if (!table?.value?.tableApi) return false
   return table.value.tableApi.getFilteredRowModel().rows.length === 0
 })
+
+onMounted(() => {
+  useInfiniteScroll(
+    table.value?.$el,
+    () => {
+      paginationPageIndex.value += 1
+    },
+    {
+      distance: 200,
+      canLoadMore: () => {
+        // If the total number of posts is less than the number of posts in the data
+        // load more (when not already loading)
+        if ((data.value?.length || 0) < paginationTotal.value) {
+          console.log('loading more')
+          return status.value !== 'pending'
+        }
+        return false
+      }
+    }
+  )
+})
 </script>
 
 <template>
@@ -311,7 +333,8 @@ const isEmpty = computed((): boolean => {
           v-model:column-filters="columnFilters"
           v-model:column-visibility="columnVisibility"
           v-model:row-selection="rowSelection"
-          class="shrink-0 mt-5"
+          sticky
+          class="shrink-0 mt-5 h-[690px]"
           :data="data"
           :columns="columns"
           :loading="status === 'pending'"
@@ -343,15 +366,6 @@ const isEmpty = computed((): boolean => {
           <div class="text-sm text-muted">
             {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
             {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
-          </div>
-
-          <div class="flex items-center gap-1.5">
-            <UPagination
-              :page="paginationPageIndex + 1"
-              :items-per-page="paginationPageSize"
-              :total="paginationTotal"
-              @update:page="paginationPageIndex = $event - 1"
-            />
           </div>
         </div>
       </div>
