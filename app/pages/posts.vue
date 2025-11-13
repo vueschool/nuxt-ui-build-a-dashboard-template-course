@@ -30,23 +30,41 @@ const columnFilters = ref([{
 const columnVisibility = ref()
 const rowSelection = ref({})
 
-const { data: response, status } = await useFetch('/api/posts', {
+const { data: response, status, execute } = await useFetch('/api/posts', {
   lazy: true,
   query: {
     q: queryDebounced,
     sort,
     pageIndex: paginationPageIndex,
     pageSize: paginationPageSize
-  }
+  },
+  watch: false
 })
+
+// change the page index to 0
+// so that the new query is fetched from the first page
+// and the fetch is triggered because paginationPageIndex changes
+// if paginationPageIndex is already 0, the request should be manually triggered since
+// the paginationPageIndex watch will not trigger
+watch([queryDebounced, sort], () => {
+  if (paginationPageIndex.value === 0) execute()
+  paginationPageIndex.value = 0
+})
+
+// trigger a refetch when paginationPageIndex or paginationPageSize changes
+// do NOT start at page 0
+watch([paginationPageIndex, paginationPageSize], () => execute())
 
 const data = ref<Post[]>()
 
-watch(response, (newVal) => {
-  if (newVal) {
-    paginationTotal.value = newVal.total
+watch(response, (newVal, oldVal) => {
+  if (!newVal) throw new Error('Empty response from API for posts')
+  paginationTotal.value = newVal.total
+  if (newVal.pageIndex > (oldVal?.pageIndex || 0)) {
     paginationPageIndex.value = newVal.pageIndex
     data.value = [...(data.value || []), ...response.value?.data || []]
+  } else {
+    data.value = newVal?.data || []
   }
 }, { immediate: true })
 
