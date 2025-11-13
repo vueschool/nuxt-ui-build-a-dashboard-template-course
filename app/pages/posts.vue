@@ -10,21 +10,28 @@ const UDropdownMenu = resolveComponent('UDropdownMenu')
 const UCheckbox = resolveComponent('UCheckbox')
 
 const toast = useToast()
+
+// Filters
+const filters = ref({
+  status: 'all' as Post['status'] | 'all'
+})
 const table = useTemplateRef('table')
 
-const query = ref('')
-const queryDebounced = refDebounced(query, 500)
+const {
+  data,
+  status,
+  query,
+  isEmpty,
+  toggleSort,
+  getSortIcon,
+  ssrPaginatedData
+} = usePaginatedData<Post>({
+  endpoint: '/api/posts',
+  filters,
+  infiniteScrollElement: (): HTMLElement | undefined => table.value?.$el
+})
 
-// Sort can be any post field or a field with a '-' prepended to make it descending
-type SortKey = keyof Post | `-${keyof Post}`
-const sort = ref<SortKey | undefined>()
-
-// Status Filter
-const statusFilter = ref<'all' | 'published' | 'draft' | 'archived'>('all')
-
-const paginationPageIndex = ref(0)
-const paginationPageSize = ref(10)
-const paginationTotal = ref()
+await ssrPaginatedData()
 
 const columnFilters = ref([{
   id: 'title',
@@ -32,45 +39,6 @@ const columnFilters = ref([{
 }])
 const columnVisibility = ref()
 const rowSelection = ref({})
-
-const { data: response, status, execute } = await useFetch('/api/posts', {
-  lazy: true,
-  query: {
-    q: queryDebounced,
-    sort,
-    pageIndex: paginationPageIndex,
-    pageSize: paginationPageSize,
-    statusFilter
-  },
-  watch: false
-})
-
-// change the page index to 0
-// so that the new query is fetched from the first page
-// and the fetch is triggered because paginationPageIndex changes
-// if paginationPageIndex is already 0, the request should be manually triggered since
-// the paginationPageIndex watch will not trigger
-watch([queryDebounced, sort, statusFilter], () => {
-  if (paginationPageIndex.value === 0) execute()
-  paginationPageIndex.value = 0
-})
-
-// trigger a refetch when paginationPageIndex or paginationPageSize changes
-// do NOT start at page 0
-watch([paginationPageIndex, paginationPageSize], () => execute())
-
-const data = ref<Post[]>()
-
-watch(response, (newVal, oldVal) => {
-  if (!newVal) throw new Error('Empty response from API for posts')
-  paginationTotal.value = newVal.total
-  if (newVal.pageIndex > (oldVal?.pageIndex || 0)) {
-    paginationPageIndex.value = newVal.pageIndex
-    data.value = [...(data.value || []), ...response.value?.data || []]
-  } else {
-    data.value = newVal?.data || []
-  }
-}, { immediate: true })
 
 function getRowItems(row: Row<Post>) {
   return [
@@ -142,21 +110,14 @@ const columns: TableColumn<Post>[] = [
   },
   {
     accessorKey: 'title',
-    header: ({ column }) => {
-      const isSorted = sort.value?.includes('title')
-      const isSortedAscending = !sort.value?.startsWith('-')
-
+    header: () => {
       return h(UButton, {
         color: 'neutral',
         variant: 'ghost',
         label: 'Title',
-        icon: isSorted
-          ? isSortedAscending
-            ? 'i-lucide-arrow-up-narrow-wide'
-            : 'i-lucide-arrow-down-wide-narrow'
-          : 'i-lucide-arrow-up-down',
+        icon: getSortIcon('title'),
         class: '-mx-2.5',
-        onClick: () => sort.value = isSortedAscending ? `-title` : 'title'
+        onClick: () => toggleSort('title')
       })
     },
     cell: ({ row }) => {
@@ -168,8 +129,18 @@ const columns: TableColumn<Post>[] = [
   },
   {
     accessorKey: 'author',
-    header: 'Author',
-    cell: ({ row }) => row.original.author
+
+    cell: ({ row }) => row.original.author,
+    header: () => {
+      return h(UButton, {
+        color: 'neutral',
+        variant: 'ghost',
+        label: 'Author',
+        icon: getSortIcon('author'),
+        class: '-mx-2.5',
+        onClick: () => toggleSort('author')
+      })
+    }
   },
   {
     accessorKey: 'category',
@@ -243,32 +214,6 @@ const columns: TableColumn<Post>[] = [
     }
   }
 ]
-
-const isEmpty = computed((): boolean => {
-  if (status.value === 'pending') return false
-  return !data.value || data.value.length === 0
-})
-
-onMounted(() => {
-  useInfiniteScroll(
-    table.value?.$el,
-    () => {
-      paginationPageIndex.value += 1
-    },
-    {
-      distance: 200,
-      canLoadMore: () => {
-        // If the total number of posts is less than the number of posts in the data
-        // load more (when not already loading)
-        if ((data.value?.length || 0) < paginationTotal.value) {
-          console.log('loading more')
-          return status.value !== 'pending'
-        }
-        return false
-      }
-    }
-  )
-})
 </script>
 
 <template>
@@ -293,7 +238,7 @@ onMounted(() => {
 
           <div class="flex flex-wrap items-center gap-1.5">
             <USelect
-              v-model="statusFilter"
+              v-model="filters.status"
               :items="[
                 { label: 'All', value: 'all' },
                 { label: 'Published', value: 'published' },

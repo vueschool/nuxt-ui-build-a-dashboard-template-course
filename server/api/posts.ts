@@ -427,7 +427,7 @@ const posts: Post[] = [{
 ]
 
 export default defineEventHandler(async (event) => {
-  const { q, sort, pageIndex, pageSize, statusFilter } = getQuery(event) as { q?: string, sort?: string, pageIndex?: string, pageSize?: string, statusFilter?: string }
+  const { q, sort, pageIndex, pageSize, status } = getQuery(event) as { q?: string, sort?: string, pageIndex?: string, pageSize?: string, status?: string }
 
   let postsCopy = [...posts]
 
@@ -438,10 +438,10 @@ export default defineEventHandler(async (event) => {
   if (q) {
     postsCopy = postsCopy.filter(post => post.title.toLowerCase().includes(q.toLowerCase()))
   }
-  if (statusFilter) {
+  if (status) {
     postsCopy = postsCopy.filter((post) => {
-      if (statusFilter === 'all' || !statusFilter) return true
-      return post.status === statusFilter
+      if (status === 'all' || !status) return true
+      return post.status === status
     })
   }
 
