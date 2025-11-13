@@ -427,7 +427,7 @@ const posts: Post[] = [{
 ]
 
 export default defineEventHandler(async (event) => {
-  const { q, sort, pageIndex, pageSize } = getQuery(event) as { q?: string, sort?: string, pageIndex?: string, pageSize?: string }
+  const { q, sort, pageIndex, pageSize, statusFilter } = getQuery(event) as { q?: string, sort?: string, pageIndex?: string, pageSize?: string, statusFilter?: string }
 
   let postsCopy = [...posts]
 
@@ -437,6 +437,12 @@ export default defineEventHandler(async (event) => {
 
   if (q) {
     postsCopy = postsCopy.filter(post => post.title.toLowerCase().includes(q.toLowerCase()))
+  }
+  if (statusFilter) {
+    postsCopy = postsCopy.filter((post) => {
+      if (statusFilter === 'all' || !statusFilter) return true
+      return post.status === statusFilter
+    })
   }
 
   const paginated = handlePagination(pageIndex, pageSize, postsCopy)

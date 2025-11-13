@@ -19,6 +19,9 @@ const queryDebounced = refDebounced(query, 500)
 type SortKey = keyof Post | `-${keyof Post}`
 const sort = ref<SortKey | undefined>()
 
+// Status Filter
+const statusFilter = ref<'all' | 'published' | 'draft' | 'archived'>('all')
+
 const paginationPageIndex = ref(0)
 const paginationPageSize = ref(10)
 const paginationTotal = ref()
@@ -36,7 +39,8 @@ const { data: response, status, execute } = await useFetch('/api/posts', {
     q: queryDebounced,
     sort,
     pageIndex: paginationPageIndex,
-    pageSize: paginationPageSize
+    pageSize: paginationPageSize,
+    statusFilter
   },
   watch: false
 })
@@ -46,7 +50,7 @@ const { data: response, status, execute } = await useFetch('/api/posts', {
 // and the fetch is triggered because paginationPageIndex changes
 // if paginationPageIndex is already 0, the request should be manually triggered since
 // the paginationPageIndex watch will not trigger
-watch([queryDebounced, sort], () => {
+watch([queryDebounced, sort, statusFilter], () => {
   if (paginationPageIndex.value === 0) execute()
   paginationPageIndex.value = 0
 })
@@ -240,26 +244,9 @@ const columns: TableColumn<Post>[] = [
   }
 ]
 
-const statusFilter = ref('all')
-
-watch(() => statusFilter.value, (newVal) => {
-  if (!table?.value?.tableApi) return
-
-  const statusColumn = table.value.tableApi.getColumn('status')
-  if (!statusColumn) return
-
-  if (newVal === 'all') {
-    statusColumn.setFilterValue(undefined)
-  } else {
-    statusColumn.setFilterValue(newVal)
-  }
-})
-
 const isEmpty = computed((): boolean => {
   if (status.value === 'pending') return false
-  if (!data.value || data.value.length === 0) return true
-  if (!table?.value?.tableApi) return false
-  return table.value.tableApi.getFilteredRowModel().rows.length === 0
+  return !data.value || data.value.length === 0
 })
 
 onMounted(() => {
@@ -383,7 +370,7 @@ onMounted(() => {
         >
           <div class="text-sm text-muted">
             {{ table?.tableApi?.getFilteredSelectedRowModel().rows.length || 0 }} of
-            {{ table?.tableApi?.getFilteredRowModel().rows.length || 0 }} row(s) selected.
+            {{ data?.length || 0 }} row(s) selected.
           </div>
         </div>
       </div>
