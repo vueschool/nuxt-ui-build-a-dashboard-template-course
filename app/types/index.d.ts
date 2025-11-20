@@ -71,4 +71,5 @@ export interface Post {
   publishedAt: string
   views: number
   likes: number
+  image: string
 }
