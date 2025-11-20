@@ -91,8 +91,22 @@ export function usePaginatedData<T = unknown>(options: UsePaginatedDataOptions) 
 
     // If loading a new page (infinite scroll), accumulate data
     if (newVal.pageIndex > (oldVal?.pageIndex || 0) && enableInfiniteScroll) {
+      const scrollElement = toValue(infiniteScrollElement)
+      // Save scroll position before updating data
+      const scrollTop = scrollElement?.scrollTop || 0
+
       paginationPageIndex.value = newVal.pageIndex
       data.value = [...(data.value || []), ...(newVal.data || [])] as T[]
+
+      // Restore scroll position after DOM update
+      // Use requestAnimationFrame to ensure DOM has fully updated
+      nextTick(() => {
+        if (scrollElement) {
+          // Restore the exact scroll position - new content is added at bottom
+          // so scrollTop should remain the same
+          scrollElement.scrollTop = scrollTop
+        }
+      })
     } else {
       // Otherwise, replace data (new search/filter/sort)
       data.value = newVal.data || []
