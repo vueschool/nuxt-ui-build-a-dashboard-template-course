@@ -489,6 +489,8 @@ export default defineEventHandler(async (event) => {
 
   const paginated = handlePagination(pageIndex, pageSize, postsCopy)
 
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
   return {
     data: paginated.data,
     total: paginated.total,
