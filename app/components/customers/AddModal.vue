@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 const open = computed({
   get: () => props.modelValue ?? false,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 type Schema = z.output<typeof schema>

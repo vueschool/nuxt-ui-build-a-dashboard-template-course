@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+
 import type { Member } from '~/types'
 
 const props = defineProps<{
@@ -7,8 +8,8 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  (e: 'invite'): void
-  (e: 'refresh'): void
+  invite: []
+  refresh: []
 }>()
 
 const route = useRoute()
