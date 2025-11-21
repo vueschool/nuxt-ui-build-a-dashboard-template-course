@@ -40,6 +40,8 @@ export function usePaginatedData<T = unknown>(options: UsePaginatedDataOptions) 
   const paginationPageIndex = ref(0)
   const paginationPageSize = ref(initialPageSize)
   const paginationTotal = ref<number>()
+  const pendingForReplace = ref(true)
+  const pendingForInfiniteScroll = computed(() => !pendingForReplace.value && status.value === 'pending' && toValue(enableInfiniteScroll))
 
   // Build query object with custom filters
   const queryParams = computed(() => {
@@ -73,6 +75,7 @@ export function usePaginatedData<T = unknown>(options: UsePaginatedDataOptions) 
   // Reset to page 0 when search/sort/filters change
   // and trigger refetch if already on page 0
   watch([queryDebounced, sort, () => toValue(filters)], () => {
+    pendingForReplace.value = true
     if (paginationPageIndex.value === 0) {
       execute()
     }
@@ -86,7 +89,7 @@ export function usePaginatedData<T = unknown>(options: UsePaginatedDataOptions) 
 
   watch(response, (newVal, oldVal) => {
     if (!newVal) return
-
+    if (oldVal) pendingForReplace.value = false
     paginationTotal.value = newVal.total
 
     // If loading a new page (infinite scroll), accumulate data
@@ -237,6 +240,7 @@ export function usePaginatedData<T = unknown>(options: UsePaginatedDataOptions) 
     pageSize: paginationPageSize,
     total: paginationTotal,
     infiniteScrollElement,
+    pendingForInfiniteScroll,
 
     // Search & Sort
     query,

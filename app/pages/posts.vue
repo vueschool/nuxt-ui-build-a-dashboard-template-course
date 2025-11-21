@@ -28,7 +28,8 @@ const {
   isEmpty,
   toggleSort,
   getSortIcon,
-  ssrPaginatedData
+  ssrPaginatedData,
+  pendingForInfiniteScroll
 } = usePaginatedData<Post>({
   endpoint: '/api/posts',
   filters,
@@ -219,33 +220,6 @@ const columns: TableColumn<Post>[] = [
     }
   }
 ]
-
-// Transform Post data to BlogPost format
-function transformPostToBlogPost(post: Post) {
-  const statusColor = {
-    published: 'success' as const,
-    draft: 'warning' as const,
-    archived: 'neutral' as const
-  }[post.status]
-
-  return {
-    title: post.title,
-    description: post.excerpt,
-    date: post.publishedAt,
-    image: post.image,
-    badge: {
-      label: post.status.charAt(0).toUpperCase() + post.status.slice(1),
-      color: statusColor,
-      variant: 'subtle' as const
-    },
-    authors: [{
-      name: post.author,
-      description: `${post.views.toLocaleString()} views • ${post.likes.toLocaleString()} likes`
-    }]
-  }
-}
-
-const blogPosts = computed(() => data.value?.map(transformPostToBlogPost) || [])
 </script>
 
 <template>
@@ -348,16 +322,7 @@ const blogPosts = computed(() => data.value?.map(transformPostToBlogPost) || [])
           }"
         >
           <template #empty>
-            <UEmpty
-              icon="i-lucide-file-text"
-              title="No posts found"
-              :description="data && data.length > 0
-                ? 'No posts match your current filters. Try adjusting your search criteria.'
-                : 'Get started by creating your first post.'"
-              variant="naked"
-              size="lg"
-              class="flex-1 flex items-center justify-center py-12"
-            />
+            <AppBlogPostsEmpty />
           </template>
         </UTable>
 
@@ -367,71 +332,13 @@ const blogPosts = computed(() => data.value?.map(transformPostToBlogPost) || [])
           ref="cardsContainer"
           class="shrink-0 mt-5 flex-1 min-h-0 overflow-y-auto"
         >
-          <!-- Skeleton Loaders -->
-          <div
-            v-if="status === 'pending'"
-            class="pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-          >
-            <div
-              v-for="i in 8"
-              :key="`skeleton-${i}`"
-              class="relative group/blog-post flex flex-col rounded-lg overflow-hidden bg-default ring ring-default"
-            >
-              <!-- Image skeleton -->
-              <div class="relative overflow-hidden aspect-[16/9] w-full">
-                <USkeleton class="w-full h-full" />
-              </div>
-              <!-- Body skeleton -->
-              <div class="min-w-0 flex-1 flex flex-col p-4 sm:p-6">
-                <!-- Badge and date skeleton -->
-                <div class="flex items-center gap-2 mb-2">
-                  <USkeleton class="h-5 w-16 rounded-full" />
-                  <USkeleton class="h-4 w-24" />
-                </div>
-                <!-- Title skeleton -->
-                <USkeleton class="h-6 w-full mb-2" />
-                <USkeleton class="h-6 w-3/4 mb-3" />
-                <!-- Description skeleton -->
-                <USkeleton class="h-4 w-full mb-1" />
-                <USkeleton class="h-4 w-5/6 mb-4" />
-                <!-- Author skeleton -->
-                <div class="pt-4 mt-auto flex items-center gap-3">
-                  <USkeleton class="h-8 w-8 rounded-full" />
-                  <div class="flex-1">
-                    <USkeleton class="h-4 w-24 mb-1" />
-                    <USkeleton class="h-3 w-32" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <UBlogPosts
-            v-else-if="!isEmpty && blogPosts.length > 0"
+          <AppBlogPosts
+            :posts="data || []"
+            :loading="status === 'pending' && !pendingForInfiniteScroll"
+            :loading-more="pendingForInfiniteScroll"
+            :empty="isEmpty"
             orientation="horizontal"
-            class="pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          >
-            <UBlogPost
-              v-for="(post, index) in blogPosts"
-              :key="`post-${post.title}-${index}`"
-              v-bind="post"
-              variant="outline"
-            />
-          </UBlogPosts>
-          <UEmpty
-            v-else
-            icon="i-lucide-file-text"
-            title="No posts found"
-            :description="data && data.length > 0
-              ? 'No posts match your current filters. Try adjusting your search criteria.'
-              : 'Get started by creating your first post.'"
-            variant="naked"
-            size="lg"
-            class="flex-1 flex items-center justify-center py-12"
           />
-          <!-- Loading indicator at bottom when loading more -->
-          <div v-if="status === 'pending' && data.length > 0" class="flex items-center justify-center py-8">
-            <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-muted" />
-          </div>
         </div>
 
         <!-- Footer with selection info (only for table view) -->
